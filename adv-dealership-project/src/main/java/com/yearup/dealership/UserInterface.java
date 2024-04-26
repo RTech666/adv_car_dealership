@@ -36,6 +36,7 @@ public class UserInterface {
     public String vehicleType;
     public List<Vehicle> vehiclesByType;
     public Vehicle vehicle;
+    public List<AddOn> selectedAddOns;
 
     // Create userInterface method.
     public UserInterface() {
@@ -57,7 +58,8 @@ public class UserInterface {
             System.out.println("7. List all vehicles");
             System.out.println("8. Add a vehicle");
             System.out.println("9. Remove a vehicle");
-            System.out.println("10. Create a contract");
+            System.out.println("10. Sell/lease a vehicle");
+            System.out.println("11. Admin");
             System.out.println("0. Exit");
     
             // Ask the user to enter their choice.
@@ -97,6 +99,9 @@ public class UserInterface {
                         break;
                     case 10:
                         sellOrLeaseVehicle();
+                        break;
+                    case 11:
+                        adminLogin();
                         break;
                     case 0:
                         System.exit(0);
@@ -468,7 +473,7 @@ public class UserInterface {
 
     private void sellOrLeaseVehicle() {
         // Print menu.
-        System.out.println("Sell or lease a vehicle:");
+        System.out.println("\nSell or lease a vehicle:");
         System.out.println("1. Sell");
         System.out.println("2. Lease");
 
@@ -504,7 +509,7 @@ public class UserInterface {
         ContractDataManager contractDataManager = new ContractDataManager();
         
         // Ask the user to enter the VIN.
-        System.out.println("Enter VIN of the vehicle to sell: ");
+        System.out.print("Enter VIN of the vehicle to sell: ");
         int vin = scanner.nextInt();
         scanner.nextLine();
     
@@ -524,15 +529,15 @@ public class UserInterface {
         }
     
         // Ask the user for the customer name.
-        System.out.println("Enter customer name: ");
+        System.out.print("Enter customer name: ");
         String customerName = scanner.nextLine();
         
         // Ask the user for the customer email.
-        System.out.println("Enter customer email: ");
+        System.out.print("Enter customer email: ");
         String customerEmail = scanner.nextLine();
         
         // Ask the user for the total price.
-        System.out.println("Enter total price: ");
+        System.out.print("Enter total price: ");
         double totalPrice = scanner.nextDouble();
         scanner.nextLine();
     
@@ -541,9 +546,17 @@ public class UserInterface {
     
         // Calculate the processing fee.
         double processingFee = (totalPrice < 10000) ? SalesContract.feeUnder10K : SalesContract.feeOver10K;
+
+        // Call offerAddOns method.
+        offerAddOns();
     
         // Create the SalesContract object.
-        SalesContract salesContract = new SalesContract(getCurrentDate(), customerName, customerEmail, vehicleToSell, salesTax, SalesContract.recordingFeeRate, processingFee);
+        SalesContract salesContract = new SalesContract(getCurrentDate(), customerName, customerEmail, vehicleToSell, totalPrice, salesTax, processingFee);
+
+        // Add the select AddOns.
+        for (AddOn addOn : selectedAddOns) {
+            salesContract.addSelectedAddOn(addOn);
+        }
     
         // Save the contract.
         contractDataManager.saveContract(salesContract);
@@ -557,7 +570,7 @@ public class UserInterface {
         ContractDataManager contractDataManager = new ContractDataManager();
         
         // Ask the user to enter the VIN.
-        System.out.println("Enter VIN of the vehicle to lease: ");
+        System.out.print("Enter VIN of the vehicle to lease: ");
         int vin = scanner.nextInt();
         scanner.nextLine();
     
@@ -577,15 +590,15 @@ public class UserInterface {
         }
     
         // Ask the user for the customer name.
-        System.out.println("Enter customer name: ");
+        System.out.print("Enter customer name: ");
         String customerName = scanner.nextLine();
         
         // Ask the user for the customer email.
-        System.out.println("Enter customer email: ");
+        System.out.print("Enter customer email: ");
         String customerEmail = scanner.nextLine();
         
         // Ask the user for the total price.
-        System.out.println("Enter total price: ");
+        System.out.print("Enter total price: ");
         double totalPrice = scanner.nextDouble();
         scanner.nextLine();
     
@@ -603,5 +616,65 @@ public class UserInterface {
     
         // Remove vehicle.
         dealership.removeVehicle(vehicleToLease);
+    }
+
+    // Create offerAddOns method.
+    private void offerAddOns() {
+        // Print menu.
+        System.out.println("Select Add-Ons (Enter corresponding numbers separated by comma if multiple):");
+        System.out.println("1. Nitrogen tires - $50");
+        System.out.println("2. All-season floor mats - $30");
+        System.out.println("3. Cargo tray - $40");
+        System.out.println("4. Window tinting - $100");
+        System.out.println("5. Splash guards - $20");
+        System.out.println("6. Wheel locks - $25");
+        
+        // Ask user what AddOns they want.
+        System.out.print("Enter Add-On numbers (0 for none): ");
+        String input = scanner.nextLine();
+        String[] selections = input.split(",");
+        
+        // Read the user input and execute the appropriate method.
+        for (String selection : selections) {
+            int choice = Integer.parseInt(selection.trim());
+            switch (choice) {
+                case 1:
+                    selectedAddOns.add(new AddOn("Nitrogen tires", 50));
+                    break;
+                case 2:
+                    selectedAddOns.add(new AddOn("All-season floor mats", 30));
+                    break;
+                case 3:
+                    selectedAddOns.add(new AddOn("Cargo tray", 40));
+                    break;
+                case 4:
+                    selectedAddOns.add(new AddOn("Window tinting", 100));
+                    break;
+                case 5:
+                    selectedAddOns.add(new AddOn("Splash guards", 20));
+                    break;
+                case 6:
+                    selectedAddOns.add(new AddOn("Wheel locks", 25));
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    // Create adminLogin method.
+    private void adminLogin() {
+        // Ask the user for the admin password.
+        System.out.print("Enter admin password: ");
+        String password = scanner.nextLine();
+        
+        // If password is admin123, access granted.
+        if (password.equals("admin123")) {
+            AdminUserInterface adminUI = new AdminUserInterface(new ContractDataManager());
+            adminUI.display();
+        // If password is incorrect, access denied.
+        } else {
+            System.out.println("Incorrect password. Access denied.");
+        }
     }
 }

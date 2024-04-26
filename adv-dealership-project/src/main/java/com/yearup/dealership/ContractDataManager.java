@@ -1,10 +1,59 @@
 package com.yearup.dealership;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ContractDataManager {
     // Create the variable.
     private static final String contractsFile = "contracts.csv";
+
+    // Create the getAllContracts method.
+    public List<String> getAllContracts() {
+        // Initalize the variable.
+        List<String> contracts = new ArrayList<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(contractsFile))) {
+            String line;
+            
+            // Read all lines from the file.
+            while ((line = reader.readLine()) != null) {
+                contracts.add(line);
+            }
+        // Print error if invalid input.
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return contracts;
+    }
+
+    // Create the getLast10Contracts method.
+    public List<String> getLast10Contracts() {
+        // Initalize the variable.
+        List<String> contracts = new ArrayList<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(contractsFile))) {
+            // Read all lines from the file.
+            List<String> allContracts = new ArrayList<>();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                allContracts.add(line);
+            }
+
+            // Get the last 10 contracts.
+            int startIndex = Math.max(0, allContracts.size() - 10);
+            for (int i = startIndex; i < allContracts.size(); i++) {
+                contracts.add(allContracts.get(i));
+            }
+        // Print error if invalid input.
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return contracts;
+    }
 
     // Create the saveContract method.
     public void saveContract(Contract contract) {

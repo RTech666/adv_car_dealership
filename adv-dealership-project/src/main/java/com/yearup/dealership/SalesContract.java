@@ -1,4 +1,6 @@
 package com.yearup.dealership;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SalesContract extends Contract {
     // Create the variables, as private.
@@ -10,6 +12,7 @@ public class SalesContract extends Contract {
     static final double recordingFeeRate = 100.0;
     static final double feeUnder10K = 295.0;
     static final double feeOver10K = 495.0;
+    private List<AddOn> selectedAddOns;
 
     // Create the contructor.
     public SalesContract(String date, String customerName, String customerEmail, Vehicle vehicle, double salesTax, double recordingFee, double processingFee) {
@@ -17,6 +20,7 @@ public class SalesContract extends Contract {
         this.salesTax = salesTax;
         this.recordingFee = recordingFee;
         this.processingFee = processingFee;
+        this.selectedAddOns = new ArrayList<>();
     }
 
     // Create getter and setters.
@@ -40,12 +44,22 @@ public class SalesContract extends Contract {
         return processingFee;
     }
 
+    public void addSelectedAddOn(AddOn addOn) {
+        selectedAddOns.add(addOn);
+    }
+
     @Override
     public double getTotalPrice() {
         double totalPrice = getVehicleSold().getPrice();
         double salesTax = totalPrice * salesTaxRate;
         double processingFee = (totalPrice < 10000) ? feeUnder10K : feeOver10K;
-        return totalPrice + salesTax + recordingFeeRate + processingFee;
+    
+        // Add price of selected AddOns to total price
+        for (AddOn addOn : selectedAddOns) {
+            totalPrice += addOn.getPrice();
+        }
+    
+        return totalPrice + salesTax + recordingFee + processingFee;
     }
 
     @Override
