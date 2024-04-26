@@ -4,7 +4,7 @@ Dealership.java
 This Java file contains the contructor for the dealership and has the methods used for majority of the program.
 */
 
-package com.yearup.dealership;
+package com.pluralsight;
 import java.util.ArrayList;
 import java.util.List;
 

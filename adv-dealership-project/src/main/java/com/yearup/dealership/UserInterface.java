@@ -14,7 +14,7 @@ processAddVehicleRequest() - Asks the user for the information of they car they 
 processRemoveVehicleRequest() - Asks the user for the VIn number of the vehicle they want to remove from the CSV.
 */
 
-package com.yearup.dealership;
+package com.pluralsight;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
