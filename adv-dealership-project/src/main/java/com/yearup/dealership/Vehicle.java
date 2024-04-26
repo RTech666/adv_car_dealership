@@ -4,7 +4,7 @@ Vehicle.java
 This Java file contains the contructor for the vehicle array and has all the getters for other class files to use to get data as needed.
 */
 
-package com.pluralsight;
+package com.yearup.dealership;
 
 class Vehicle {
     private int vin;

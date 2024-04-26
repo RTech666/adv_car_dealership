@@ -4,7 +4,7 @@ DealershipFileManager.java
 This Java file contains all the information that allows the other classes to read the CSV and adjust it's contents.
 */
 
-package com.pluralsight;
+package com.yearup.dealership;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
