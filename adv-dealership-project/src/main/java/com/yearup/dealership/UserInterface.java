@@ -15,6 +15,8 @@ processRemoveVehicleRequest() - Asks the user for the VIn number of the vehicle 
 */
 
 package com.yearup.dealership;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
@@ -55,6 +57,7 @@ public class UserInterface {
             System.out.println("7. List all vehicles");
             System.out.println("8. Add a vehicle");
             System.out.println("9. Remove a vehicle");
+            System.out.println("10. Create a contract");
             System.out.println("0. Exit");
     
             // Ask the user to enter their choice.
@@ -91,6 +94,9 @@ public class UserInterface {
                         break;
                     case 9:
                         processRemoveVehicleRequest();
+                        break;
+                    case 10:
+                        sellOrLeaseVehicle();
                         break;
                     case 0:
                         System.exit(0);
@@ -458,5 +464,144 @@ public class UserInterface {
         } catch (InputMismatchException e) {
             System.out.println("Invalid input. Please enter a valid VIN.");
         }
+    }
+
+    private void sellOrLeaseVehicle() {
+        // Print menu.
+        System.out.println("Sell or lease a vehicle:");
+        System.out.println("1. Sell");
+        System.out.println("2. Lease");
+
+        // Ask user what option they want.
+        System.out.print("Enter your choice: ");
+        int option = scanner.nextInt();
+        scanner.nextLine();
+
+        // Read the user input and execute the appropriate method.
+        switch (option) {
+            case 1:
+                sellVehicle();
+                break;
+            case 2:
+                leaseVehicle();
+                break;
+            default:
+                System.out.println("Invalid input.");
+                break;
+        }
+    }
+
+    // Create getCurrentDateMethod.
+    private String getCurrentDate() {
+        // Set the format.
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
+        Date date = new Date();
+        return formatter.format(date);
+    }
+
+    private void sellVehicle() {
+        // Initalize the variable.
+        ContractDataManager contractDataManager = new ContractDataManager();
+        
+        // Ask the user to enter the VIN.
+        System.out.println("Enter VIN of the vehicle to sell: ");
+        int vin = scanner.nextInt();
+        scanner.nextLine();
+    
+        // Search for the vehicle.
+        Vehicle vehicleToSell = null;
+        for (Vehicle vehicle : dealership.getAllVehicles()) {
+            if (vehicle.getVin() == vin) {
+                vehicleToSell = vehicle;
+                break;
+            }
+        }
+        
+        // If no results, print message.
+        if (vehicleToSell == null) {
+            System.out.println("Vehicle with VIN " + vin + " not found.");
+            return;
+        }
+    
+        // Ask the user for the customer name.
+        System.out.println("Enter customer name: ");
+        String customerName = scanner.nextLine();
+        
+        // Ask the user for the customer email.
+        System.out.println("Enter customer email: ");
+        String customerEmail = scanner.nextLine();
+        
+        // Ask the user for the total price.
+        System.out.println("Enter total price: ");
+        double totalPrice = scanner.nextDouble();
+        scanner.nextLine();
+    
+        // Calculate the sales tax.
+        double salesTax = totalPrice * SalesContract.salesTaxRate;
+    
+        // Calculate the processing fee.
+        double processingFee = (totalPrice < 10000) ? SalesContract.feeUnder10K : SalesContract.feeOver10K;
+    
+        // Create the SalesContract object.
+        SalesContract salesContract = new SalesContract(getCurrentDate(), customerName, customerEmail, vehicleToSell, salesTax, SalesContract.recordingFeeRate, processingFee);
+    
+        // Save the contract.
+        contractDataManager.saveContract(salesContract);
+    
+        // Remove vehicle.
+        dealership.removeVehicle(vehicleToSell);
+    }
+
+    private void leaseVehicle() {
+        // Initalize the variable.
+        ContractDataManager contractDataManager = new ContractDataManager();
+        
+        // Ask the user to enter the VIN.
+        System.out.println("Enter VIN of the vehicle to lease: ");
+        int vin = scanner.nextInt();
+        scanner.nextLine();
+    
+        // Search for the vehicle.
+        Vehicle vehicleToLease = null;
+        for (Vehicle vehicle : dealership.getAllVehicles()) {
+            if (vehicle.getVin() == vin) {
+                vehicleToLease = vehicle;
+                break;
+            }
+        }
+        
+        // If no results, print message.
+        if (vehicleToLease == null) {
+            System.out.println("Vehicle with VIN " + vin + " not found.");
+            return;
+        }
+    
+        // Ask the user for the customer name.
+        System.out.println("Enter customer name: ");
+        String customerName = scanner.nextLine();
+        
+        // Ask the user for the customer email.
+        System.out.println("Enter customer email: ");
+        String customerEmail = scanner.nextLine();
+        
+        // Ask the user for the total price.
+        System.out.println("Enter total price: ");
+        double totalPrice = scanner.nextDouble();
+        scanner.nextLine();
+    
+        // Calculate the lease fee.
+        double leaseFee = totalPrice * LeaseContract.leaseFeeRate;
+    
+        // Calculate the monthly payment.
+        double monthlyPayment = totalPrice * LeaseContract.interestRate / (1 - Math.pow(1 + LeaseContract.interestRate, -LeaseContract.loanTerm));
+    
+        // Create the LeaseContract object.
+        LeaseContract leaseContract = new LeaseContract(getCurrentDate(), customerName, customerEmail, vehicleToLease, leaseFee, monthlyPayment);
+    
+        // Save the contract.
+        contractDataManager.saveContract(leaseContract);
+    
+        // Remove vehicle.
+        dealership.removeVehicle(vehicleToLease);
     }
 }
