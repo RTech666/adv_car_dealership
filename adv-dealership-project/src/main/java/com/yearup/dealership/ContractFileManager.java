@@ -1,3 +1,8 @@
+/* 
+ContractFileManager.java
+This Java file allows the program to write the information into the contracts.csv file.
+*/
+
 package com.yearup.dealership;
 import java.io.FileWriter;
 import java.io.IOException;

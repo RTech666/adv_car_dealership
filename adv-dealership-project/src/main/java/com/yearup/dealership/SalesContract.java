@@ -1,3 +1,11 @@
+/* 
+SalesContract.java
+This Java file contains the constructors, getters, and setters for the vehicle sales contract.
+
+getTotalPrice() - Calulates the total price of the vehicle including the addons (if user chose addons).
+getMonthlyPayment() - Calculates the monthly payment for the vehicle contract.
+*/
+
 package com.yearup.dealership;
 import java.util.ArrayList;
 import java.util.List;

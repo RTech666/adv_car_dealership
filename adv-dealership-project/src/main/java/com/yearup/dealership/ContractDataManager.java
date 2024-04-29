@@ -1,3 +1,8 @@
+/* 
+ContractDataManager.java
+This Java file allows the program to save the changes made while the program was running.
+*/
+
 package com.yearup.dealership;
 import java.io.BufferedReader;
 import java.io.FileReader;

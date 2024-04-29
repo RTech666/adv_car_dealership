@@ -1,3 +1,8 @@
+/* 
+Contract.java
+This Java file contains the constructors, getters, and abstract methods for the vehicle contracts.
+*/
+
 package com.yearup.dealership;
 
 public abstract class Contract {

@@ -4,18 +4,28 @@ UserInterface.java
 This Java file is mainly just the face of the program. It calls the methods from other classes depnding on the user's choice and has error handling.
 
 display() - Prints the main menu and asks the user what they want to do.
-processGetAllVehiclesRequest() - Initalizes the array.
+init() - Initalizes the DeslershipFilemanager and dealership array.
+displayVehicles(List<Vehicle> vehicles) - Print all the vehicles in the inventory.csv.
+processGetAllVehiclesRequest() - Initalizes the vehicle array.
 processGetByPriceRequest() - Asks the user for their price range and then reads the CSV for any vehicles that match the price range and prints the results.
 processGetByMakeModelRequest() - Same as the previous method, but does it by make and model.
 processGetByYearRequest() - Same as the previous method, but does it by year range.
 processGetByColorRequest() - Same as the previous method, but does it by color.
 processGetByMilageRequest() - Same as the previous method, but does it by mileage range.
+processGetByVehicleTypeRequest() - Same as previous method, but does it by vehicle type.
 processAddVehicleRequest() - Asks the user for the information of they car they want to add, then it adds it to the CSV.
-processRemoveVehicleRequest() - Asks the user for the VIn number of the vehicle they want to remove from the CSV.
+processRemoveVehicleRequest() - Asks the user for the VIN number of the vehicle they want to remove from the CSV.
+sellOrLeaseVehicle() - Asks the user if they want to sell or lease a vehicle.
+getCurrentDate() - Gets current date.
+sellVehicle() - Asks user for the vehicle VIN, customer's information, and if they want any addons. Then writes all the information in contracts.csv.
+leaseVehicle() - Same as the previoud method, but doesn't offer addons.
+offerAddOns() - Used to print the addon information when selling a car.
+adminLogin() - Asks the user for the admin password and ask them if they want to see all contracts or the last 10.
 */
 
 package com.yearup.dealership;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.InputMismatchException;
 import java.util.List;
@@ -471,6 +481,7 @@ public class UserInterface {
         }
     }
 
+    // Create sellOrLeaseVehicle method.
     private void sellOrLeaseVehicle() {
         // Print menu.
         System.out.println("\nSell or lease a vehicle:");
@@ -504,177 +515,251 @@ public class UserInterface {
         return formatter.format(date);
     }
 
+    // Create the sellVehicle method.
     private void sellVehicle() {
-        // Initalize the variable.
+        // Initialize the variables.
         ContractDataManager contractDataManager = new ContractDataManager();
+        List<AddOn> selectedAddOns = new ArrayList<>();
         
-        // Ask the user to enter the VIN.
-        System.out.print("Enter VIN of the vehicle to sell: ");
-        int vin = scanner.nextInt();
-        scanner.nextLine();
-    
-        // Search for the vehicle.
-        Vehicle vehicleToSell = null;
-        for (Vehicle vehicle : dealership.getAllVehicles()) {
-            if (vehicle.getVin() == vin) {
-                vehicleToSell = vehicle;
-                break;
+        while (true) {
+            // Ask the user to enter the VIN.
+            System.out.print("Enter VIN of the vehicle to sell: ");
+            int vin;
+            try {
+                vin = scanner.nextInt();
+                scanner.nextLine();
+            // Print error if invalid input.
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid VIN.");
+                scanner.nextLine();
+                continue;
             }
+    
+            // Search for the vehicle.
+            Vehicle vehicleToSell = null;
+            for (Vehicle vehicle : dealership.getAllVehicles()) {
+                if (vehicle.getVin() == vin) {
+                    vehicleToSell = vehicle;
+                    break;
+                }
+            }
+            
+            // If no results, print message and ask the user to try again.
+            if (vehicleToSell == null) {
+                System.out.println("Vehicle with VIN " + vin + " not found.");
+                continue;
+            }
+    
+            // Ask the user for the customer name.
+            System.out.print("Enter customer name: ");
+            String customerName = scanner.nextLine();
+            
+            // Ask the user for the customer email.
+            System.out.print("Enter customer email: ");
+            String customerEmail = scanner.nextLine();
+            
+            // Ask the user for the total price.
+            System.out.print("Enter total price: ");
+            double totalPrice;
+            try {
+                totalPrice = scanner.nextDouble();
+                scanner.nextLine();
+            // Print error if invalid input.
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid price.");
+                scanner.nextLine();
+                continue;
+            }
+    
+            // Calculate the sales tax.
+            double salesTax = totalPrice * SalesContract.salesTaxRate;
+    
+            // Calculate the processing fee.
+            double processingFee = (totalPrice < 10000) ? SalesContract.feeUnder10K : SalesContract.feeOver10K;
+    
+            // Call offerAddOns method.
+            offerAddOns();
+    
+            // Create the SalesContract object.
+            SalesContract salesContract = new SalesContract(getCurrentDate(), customerName, customerEmail, vehicleToSell, totalPrice, salesTax, processingFee);
+    
+            // Add the selected AddOns.
+            for (AddOn addOn : selectedAddOns) {
+                salesContract.addSelectedAddOn(addOn);
+            }
+    
+            // Save the contract.
+            contractDataManager.saveContract(salesContract);
+    
+            // Remove vehicle.
+            dealership.removeVehicle(vehicleToSell);
+    
+            // Print success message.
+            System.out.println("\nVehicle successfully sold!");
+            break;
         }
-        
-        // If no results, print message.
-        if (vehicleToSell == null) {
-            System.out.println("Vehicle with VIN " + vin + " not found.");
-            return;
-        }
-    
-        // Ask the user for the customer name.
-        System.out.print("Enter customer name: ");
-        String customerName = scanner.nextLine();
-        
-        // Ask the user for the customer email.
-        System.out.print("Enter customer email: ");
-        String customerEmail = scanner.nextLine();
-        
-        // Ask the user for the total price.
-        System.out.print("Enter total price: ");
-        double totalPrice = scanner.nextDouble();
-        scanner.nextLine();
-    
-        // Calculate the sales tax.
-        double salesTax = totalPrice * SalesContract.salesTaxRate;
-    
-        // Calculate the processing fee.
-        double processingFee = (totalPrice < 10000) ? SalesContract.feeUnder10K : SalesContract.feeOver10K;
-
-        // Call offerAddOns method.
-        offerAddOns();
-    
-        // Create the SalesContract object.
-        SalesContract salesContract = new SalesContract(getCurrentDate(), customerName, customerEmail, vehicleToSell, totalPrice, salesTax, processingFee);
-
-        // Add the select AddOns.
-        for (AddOn addOn : selectedAddOns) {
-            salesContract.addSelectedAddOn(addOn);
-        }
-    
-        // Save the contract.
-        contractDataManager.saveContract(salesContract);
-    
-        // Remove vehicle.
-        dealership.removeVehicle(vehicleToSell);
     }
 
+    // Create the leaseVehicle method.
     private void leaseVehicle() {
-        // Initalize the variable.
+        // Initialize the variable.
         ContractDataManager contractDataManager = new ContractDataManager();
         
-        // Ask the user to enter the VIN.
-        System.out.print("Enter VIN of the vehicle to lease: ");
-        int vin = scanner.nextInt();
-        scanner.nextLine();
-    
-        // Search for the vehicle.
-        Vehicle vehicleToLease = null;
-        for (Vehicle vehicle : dealership.getAllVehicles()) {
-            if (vehicle.getVin() == vin) {
-                vehicleToLease = vehicle;
-                break;
+        while (true) {
+            // Ask the user to enter the VIN.
+            System.out.print("Enter VIN of the vehicle to lease: ");
+            int vin;
+            try {
+                vin = scanner.nextInt();
+                scanner.nextLine();
+            // Print error if invalid input.
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid VIN.");
+                scanner.nextLine();
+                continue;
             }
+    
+            // Search for the vehicle.
+            Vehicle vehicleToLease = null;
+            for (Vehicle vehicle : dealership.getAllVehicles()) {
+                if (vehicle.getVin() == vin) {
+                    vehicleToLease = vehicle;
+                    break;
+                }
+            }
+            
+            // If no results, print message and ask the user to try again.
+            if (vehicleToLease == null) {
+                System.out.println("Vehicle with VIN " + vin + " not found.");
+                continue;
+            }
+    
+            // Ask the user for the customer name.
+            System.out.print("Enter customer name: ");
+            String customerName = scanner.nextLine();
+            
+            // Ask the user for the customer email.
+            System.out.print("Enter customer email: ");
+            String customerEmail = scanner.nextLine();
+            
+            // Ask the user for the total price.
+            System.out.print("Enter total price: ");
+            double totalPrice;
+            try {
+                totalPrice = scanner.nextDouble();
+                scanner.nextLine();
+            // Print error if invalid input.
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid price.");
+                scanner.nextLine();
+                continue;
+            }
+    
+            // Calculate the lease fee.
+            double leaseFee = totalPrice * LeaseContract.leaseFeeRate;
+    
+            // Calculate the monthly payment.
+            double monthlyPayment = totalPrice * LeaseContract.interestRate / (1 - Math.pow(1 + LeaseContract.interestRate, -LeaseContract.loanTerm));
+    
+            // Create the LeaseContract object.
+            LeaseContract leaseContract = new LeaseContract(getCurrentDate(), customerName, customerEmail, vehicleToLease, leaseFee, monthlyPayment);
+    
+            // Save the contract.
+            contractDataManager.saveContract(leaseContract);
+    
+            // Remove vehicle.
+            dealership.removeVehicle(vehicleToLease);
+    
+            // Print success message.
+            System.out.println("\nVehicle successfully leased!");
+            break;
         }
-        
-        // If no results, print message.
-        if (vehicleToLease == null) {
-            System.out.println("Vehicle with VIN " + vin + " not found.");
-            return;
-        }
-    
-        // Ask the user for the customer name.
-        System.out.print("Enter customer name: ");
-        String customerName = scanner.nextLine();
-        
-        // Ask the user for the customer email.
-        System.out.print("Enter customer email: ");
-        String customerEmail = scanner.nextLine();
-        
-        // Ask the user for the total price.
-        System.out.print("Enter total price: ");
-        double totalPrice = scanner.nextDouble();
-        scanner.nextLine();
-    
-        // Calculate the lease fee.
-        double leaseFee = totalPrice * LeaseContract.leaseFeeRate;
-    
-        // Calculate the monthly payment.
-        double monthlyPayment = totalPrice * LeaseContract.interestRate / (1 - Math.pow(1 + LeaseContract.interestRate, -LeaseContract.loanTerm));
-    
-        // Create the LeaseContract object.
-        LeaseContract leaseContract = new LeaseContract(getCurrentDate(), customerName, customerEmail, vehicleToLease, leaseFee, monthlyPayment);
-    
-        // Save the contract.
-        contractDataManager.saveContract(leaseContract);
-    
-        // Remove vehicle.
-        dealership.removeVehicle(vehicleToLease);
     }
 
     // Create offerAddOns method.
     private void offerAddOns() {
-        // Print menu.
-        System.out.println("Select Add-Ons (Enter corresponding numbers separated by comma if multiple):");
-        System.out.println("1. Nitrogen tires - $50");
-        System.out.println("2. All-season floor mats - $30");
-        System.out.println("3. Cargo tray - $40");
-        System.out.println("4. Window tinting - $100");
-        System.out.println("5. Splash guards - $20");
-        System.out.println("6. Wheel locks - $25");
+        boolean validInput = false;
+        while (!validInput) {
+            // Print menu.
+            System.out.println("\nSelect Add-Ons (Enter corresponding numbers separated by comma if multiple):");
+            System.out.println("1. Nitrogen tires - $50");
+            System.out.println("2. All-season floor mats - $30");
+            System.out.println("3. Cargo tray - $40");
+            System.out.println("4. Window tinting - $100");
+            System.out.println("5. Splash guards - $20");
+            System.out.println("6. Wheel locks - $25");
         
-        // Ask user what AddOns they want.
-        System.out.print("Enter Add-On numbers (0 for none): ");
-        String input = scanner.nextLine();
-        String[] selections = input.split(",");
+            // Ask user what AddOns they want.
+            System.out.print("Enter Add-On numbers (0 for none): ");
+            String input = scanner.nextLine();
+            String[] selections = input.split(",");
         
-        // Read the user input and execute the appropriate method.
-        for (String selection : selections) {
-            int choice = Integer.parseInt(selection.trim());
-            switch (choice) {
-                case 1:
-                    selectedAddOns.add(new AddOn("Nitrogen tires", 50));
+            // Clear previous selections
+            selectedAddOns.clear();
+        
+            // Read the user input and execute the appropriate method.
+            for (String selection : selections) {
+                int choice;
+                try {
+                    choice = Integer.parseInt(selection.trim());
+                // Print error if invalid input.
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid input.");
+                    validInput = false;
                     break;
-                case 2:
-                    selectedAddOns.add(new AddOn("All-season floor mats", 30));
+                }
+
+                if (choice >= 1 && choice <= 6) {
+                    validInput = true;
+                    switch (choice) {
+                        case 1:
+                            selectedAddOns.add(new AddOn("Nitrogen tires", 50));
+                            break;
+                        case 2:
+                            selectedAddOns.add(new AddOn("All-season floor mats", 30));
+                            break;
+                        case 3:
+                            selectedAddOns.add(new AddOn("Cargo tray", 40));
+                            break;
+                        case 4:
+                            selectedAddOns.add(new AddOn("Window tinting", 100));
+                            break;
+                        case 5:
+                            selectedAddOns.add(new AddOn("Splash guards", 20));
+                            break;
+                        case 6:
+                            selectedAddOns.add(new AddOn("Wheel locks", 25));
+                            break;
+                        default:
+                            break;
+                    }
+                // Print error if invalid input.
+                } else {
+                    System.out.println("Invalid input.");
+                    validInput = false;
                     break;
-                case 3:
-                    selectedAddOns.add(new AddOn("Cargo tray", 40));
-                    break;
-                case 4:
-                    selectedAddOns.add(new AddOn("Window tinting", 100));
-                    break;
-                case 5:
-                    selectedAddOns.add(new AddOn("Splash guards", 20));
-                    break;
-                case 6:
-                    selectedAddOns.add(new AddOn("Wheel locks", 25));
-                    break;
-                default:
-                    break;
+                }
             }
         }
     }
 
     // Create adminLogin method.
     private void adminLogin() {
-        // Ask the user for the admin password.
-        System.out.print("Enter admin password: ");
-        String password = scanner.nextLine();
-        
-        // If password is admin123, access granted.
-        if (password.equals("admin123")) {
-            AdminUserInterface adminUI = new AdminUserInterface(new ContractDataManager());
-            adminUI.display();
-        // If password is incorrect, access denied.
-        } else {
-            System.out.println("Incorrect password. Access denied.");
+        boolean loggedIn = false;
+        while (!loggedIn) {
+            // Ask the user for the admin password.
+            System.out.print("Enter admin password: ");
+            String password = scanner.nextLine();
+    
+            // If password is admin123, access granted.
+            if (password.equals("admin123")) {
+                AdminUserInterface adminUI = new AdminUserInterface(new ContractDataManager());
+                adminUI.displayMenu();
+                loggedIn = true;
+            // If password is incorrect, ask again.
+            } else {
+                System.out.println("Incorrect password. Please try again.");
+            }
         }
     }
 }

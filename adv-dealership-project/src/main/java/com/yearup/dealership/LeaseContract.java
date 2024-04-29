@@ -1,3 +1,10 @@
+/* 
+LeaseContract.java
+This Java file contains the constructors, getters, and setters for the vehicle sales contract.
+
+getTotalPrice() - Calulates the total price of the vehicle including the lease fee.
+*/
+
 package com.yearup.dealership;
 
 public class LeaseContract extends Contract {
